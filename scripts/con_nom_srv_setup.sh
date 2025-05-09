@@ -1,11 +1,4 @@
 #!/bin/bash
-
-if [ -z "$1" ]; then
-  echo "Error: Node name is required as the first argument."
-  echo "Usage: $0 <node_name>"
-  exit 1
-fi
-
 ip_address=$(ip addr show vxlan16 | grep -oP 'inet \K[^/]+' | head -n 1)
 if [ -z "$ip_address" ]; then
     echo "Error: ip adress obtention faile verify the interface exist or an ip is set fo this interface"
@@ -13,8 +6,13 @@ if [ -z "$ip_address" ]; then
 fi
 
 # IP of all VM vxlan if more servers just add thei ip to this list
+# IF YOU WANT MORE VM TO HAVE CONSUL/NOMAD SERVERS ONLY ADD THEIR VXLAN IP THERE
 servers=("172.16.16.100" "172.16.16.101" "172.16.16.102")
 nb_serv=${#servers[@]}
+
+# get the name of the VM host (only the part before the first string or - (used for test on personal))
+hostname="${HOSTNAME%%.*}"
+
 join_list=""
 separator=""
 for ip in "${servers[@]}"; do
@@ -32,7 +30,7 @@ datacenter = "epee"
 
 # Save the persistent data to /opt/consul. This directory is owned by the "consul" user.
 data_dir = "/opt/consul"
-node_name = "$1"
+node_name = "$hostname"
 
 # Allow clients to connect from any interface
 client_addr = "0.0.0.0"
@@ -92,7 +90,7 @@ cat <<EOF > "$file_name"
 datacenter = "epee"
 
 # Node name
-name = "$1"
+name = "$hostname"
 
 # Save the persistent data to /opt/nomad
 data_dir = "/opt/nomad"

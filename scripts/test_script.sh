@@ -9,6 +9,7 @@ fi
 # IP of all VM vxlan
 servers=("172.16.16.100" "172.16.16.101" "172.16.16.102")
 
+
 formatted_servers=""
 separator=""
 
@@ -29,4 +30,8 @@ servers=("172.16.16.100" "172.16.16.101" "172.16.16.102")
 nb_serv=${#servers[@]}
 
 echo "$nb_serv"
+
+hostname="${HOSTNAME%%\-*}"
+echo $hostname
+echo $HOSTNAME
 
