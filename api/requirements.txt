@@ -1,0 +1,11 @@
+boto3
+celery
+Flask
+Flask-Cors
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation-flask
+opentelemetry-instrumentation-celery
+Pillow
+python-dotenv
+gunicorn

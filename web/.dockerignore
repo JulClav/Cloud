@@ -1,0 +1,20 @@
+# web/.dockerignore
+
+# Ignore node_modules, it will be installed in the Docker image
+node_modules
+
+# Ignore build artifacts if they exist locally, they will be generated in the image
+dist
+.vite
+
+# Ignore the pages directory if it contains Next.js specific files
+# and is not part of your Vite application.
+pages/
+
+# Ignore other common files not needed in the image
+.env
+*.local
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

@@ -1,0 +1,38 @@
+# web/Dockerfile.frontend
+
+FROM node:24-alpine AS build
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci
+
+COPY . .
+
+RUN npm run build
+
+# ---- Final Stage ----
+# Sets up a Node.js environment to serve the built assets using vite preview
+FROM node:24-alpine
+WORKDIR /app
+
+# Copy the entrypoint script that configures API_URL and starts the server
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Copy built assets from the build stage
+COPY --from=build /app/dist ./dist
+
+# Copy node_modules and package.json from build stage.
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/package.json ./package.json
+
+# Port that vite preview will listen on inside the container
+EXPOSE 3000
+
+# The API_URL_FOR_FRONTEND will be injected by Nomad into the container's environment.
+# entrypoint.sh uses this variable.
+
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3000"]
