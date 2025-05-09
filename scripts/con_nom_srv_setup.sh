@@ -5,23 +5,25 @@ if [ -z "$ip_address" ]; then
     exit 1
 fi
 
-# IP of all VM vxlan if more servers just add thei ip to this list
+# IP of all VM vxlan if more SERVERS just add thei ip to this list
 # IF YOU WANT MORE VM TO HAVE CONSUL/NOMAD SERVERS ONLY ADD THEIR VXLAN IP THERE
-servers=("172.16.16.100" "172.16.16.101" "172.16.16.102")
-nb_serv=${#servers[@]}
+SERVERS=("172.16.16.100" "172.16.16.101" "172.16.16.102")
+NBSERV=${#SERVERS[@]}
 
 # get the name of the VM host (only the part before the first string or - (used for test on personal))
-hostname="${HOSTNAME%%.*}"
+HOST="${HOSTNAME%%.*}"
 
+# create a list of the other VMs IP
 join_list=""
 separator=""
-for ip in "${servers[@]}"; do
+for ip in "${SERVERS[@]}"; do
   # ignore the ip of the current VM
   if [[ "$ip" != "$ip_address" ]]; then
     join_list+="$separator\"$ip\""
     separator=","
   fi
 done
+
 file_name="consul.hcl"
 # Create the consul config file
 cat <<EOF > "$file_name"
@@ -30,7 +32,7 @@ datacenter = "epee"
 
 # Save the persistent data to /opt/consul. This directory is owned by the "consul" user.
 data_dir = "/opt/consul"
-node_name = "$hostname"
+node_name = "$HOST"
 
 # Allow clients to connect from any interface
 client_addr = "0.0.0.0"
@@ -46,9 +48,9 @@ ui_config {
 # Whether it is running in server mode or not
 server = true
 
-# This server expects to be part of $nb_serv servers
+# This server expects to be part of $NBSERV servers
 # Comment this line if this is not a server.
-bootstrap_expect = $nb_serv
+bootstrap_expect = $NBSERV
 
 
 addresses {
@@ -71,7 +73,8 @@ EOF
 # Check if the consul config was created successfully uncomment cat if you want to debug
 if [ -f "$file_name" ]; then
   echo "File '$file_name' created successfully"
-#   cat "$file_name"
+  # uncomment nesxt line if you want to see the generated nomad config in terminal
+  # cat "$file_name"
 else
   echo "Error: Failed to create file '$file_name'."
   exit 1
@@ -79,9 +82,10 @@ fi
 
 sudo mv -f ./$file_name /etc/consul.d/$file_name
 
+# enable 
 sudo systemctl enable consul
 sudo systemctl restart consul
-sudo systemctl status consul --no-pager > /dev/null
+
 
 file_name="nomad.hcl"
 
@@ -90,7 +94,7 @@ cat <<EOF > "$file_name"
 datacenter = "epee"
 
 # Node name
-name = "$hostname"
+name = "$HOST"
 
 # Save the persistent data to /opt/nomad
 data_dir = "/opt/nomad"
@@ -105,10 +109,10 @@ advertise {
   serf = "$ip_address"
 }
 
-# This node is a server, and expects to be part of $nb_serv servers 
+# This node is a server, and expects to be part of $NBSERV SERVERS 
 server {
   enabled = true
-  bootstrap_expect = $nb_serv
+  bootstrap_expect = $NBSERV
   server_join {
     retry_join = [$join_list]
   }
@@ -137,7 +141,8 @@ EOF
 # Check if the nomad config was created successfully uncomment cat if you want to debug
 if [ -f "$file_name" ]; then
   echo "File '$file_name' created successfully"
-#   cat "$file_name"
+  # uncomment nesxt line if you want to see the generated nomad config in terminal
+  # cat "$file_name"
 else
   echo "Error: Failed to create file '$file_name'."
   exit 1
@@ -147,9 +152,10 @@ sudo mv -f ./$file_name /etc/nomad.d/$file_name
 
 sudo systemctl enable nomad
 sudo systemctl restart nomad
-sudo systemctl status nomad --no-pager > /dev/null
+
 
 # if you want to see if it worked uncomment this
+
 # sleep 1
 # echo "consul members"
 # consul members
@@ -159,6 +165,10 @@ sudo systemctl status nomad --no-pager > /dev/null
 # nomad server members
 # echo "nomad raft peers"
 # nomad operator raft list-peers
+# echo "status consul"
+# sudo systemctl status consul --no-pager
+# echo "status nomad"
+# sudo systemctl status nomad --no-pager
 
 # clean the vm by removing the now useless script
 rm "$0"
