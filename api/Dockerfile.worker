@@ -1,22 +1,7 @@
 # api/Dockerfile.worker
 FROM python:3.13-slim-bookworm
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONPATH /app 
-
 WORKDIR /app
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libjpeg-dev \
-    zlib1g-dev \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-
-COPY . .
 
 # Environment variables for S3 and Celery (placeholders, Nomad will override)
 ENV CELERY_BROKER_URL="amqp://user:pass@queue.internal.100do.se:5672/vhost"
@@ -25,4 +10,16 @@ ENV AWS_ACCESS_KEY_ID="my_access_key"
 ENV AWS_SECRET_ACCESS_KEY="my_secret_key" 
 ENV S3_BUCKET_NAME="my_bucket_name"
 
-CMD ["celery", "-A", "image_api.worker.app", "worker", "--loglevel=INFO"]
+# Copy the rest of the app
+COPY . .
+
+# Add uv as per https://docs.astral.sh/uv/guides/integration/docker/#installing-uv guide
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Sync dependencies
+RUN uv sync --no-dev --locked
+
+#install deps
+RUN uv pip install gunicorn
+
+CMD ["uv", "run", "--no-dev", "celery", "--app", "image_api.worker.app", "worker"]
