@@ -120,7 +120,7 @@ server {
 
 # This node is not running jobs
 client {
-  enabled = false
+  enabled = true
 }
 
 # Connect to the local Consul agent

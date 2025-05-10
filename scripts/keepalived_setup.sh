@@ -2,6 +2,7 @@
 GROUP=16
 VXLAN="vxlan$GROUP"
 FLOATING_IP="172.16.${GROUP}.110/24"
+FRONT_END_NOMAD="172.16.${GROUP}.120/24"
 ROUTER_ID="51"
 AUTH_MDP="EfGhVACWu/ZBKy88uVM7WIp/KJlnVCkCyLrURcwVDbo="
 CONFIG_PATH="/etc/keepalived/keepalived.conf"
@@ -36,6 +37,7 @@ vrrp_instance VI_1 {
     }
     virtual_ipaddress {
         $FLOATING_IP
+        $FRONT_END_NOMAD
     }
 }
 EOF
@@ -57,9 +59,9 @@ sudo systemctl restart keepalived
 rm "$0"
 
 # uncomment these lines to check if the keepalived work after the script
-sleep 3
-sudo systemctl status keepalived --no-pager
-ip addr show vxlan16 | grep 172.16.16.110 # this one only work if the vm is the MASTER
+# sleep 3
+# sudo systemctl status keepalived --no-pager
+# ip addr show vxlan16 | grep 172.16.16.110 # this one only work if the vm is the MASTER
 # sudo journalctl -u keepalived -f
 
 echo "keepalived setup finished"
