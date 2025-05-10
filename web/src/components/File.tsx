@@ -26,7 +26,7 @@ const File: React.FC<Props> = ({ file }) => {
   const { isLoading, error, data } = useQuery<unknown, Error, QueryAnswer>({
     queryKey: ["upload", randomId],
     queryFn: async () => {
-      const uploadEndpoint = new URL("/image", backendEndpoint).toString();
+      const uploadEndpoint = new URL("/api/image", backendEndpoint).toString();
       const formData = new FormData();
       formData.append("file", file);
       const response = await fetch(uploadEndpoint, {

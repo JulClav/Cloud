@@ -20,7 +20,7 @@ FlaskInstrumentor().instrument_app(app)
 CORS(app)
 
 
-@app.route("/")
+@app.route("/api/")
 def index():
     return {
         "upload_url": unquote(url_for("upload")),
@@ -32,7 +32,7 @@ def index():
     }
 
 
-@app.route("/image", methods=["POST"])
+@app.route("/api/image", methods=["POST"])
 def upload():
     """Upload the image to the S3 bucket"""
     if "file" not in request.files:
@@ -105,37 +105,37 @@ def stream_image(id: str, size: Sizes):
     return res
 
 
-@app.route("/image/<id>", methods=["GET"])
+@app.route("/api/image/<id>", methods=["GET"])
 def original(id: str):
     """Serve the original image from the S3 bucket"""
     return stream_image(id, Sizes.Original)
 
 
-@app.route("/image/<id>/big", methods=["GET"])
+@app.route("/api/image/<id>/big", methods=["GET"])
 def big(id: str):
     """Serve the big thumbnail image from the S3 bucket"""
     return stream_image(id, Sizes.Big)
 
 
-@app.route("/image/<id>/medium", methods=["GET"])
+@app.route("/api/image/<id>/medium", methods=["GET"])
 def medium(id: str):
     """Serve the medium thumbnail image from the S3 bucket"""
     return stream_image(id, Sizes.Medium)
 
 
-@app.route("/image/<id>/small", methods=["GET"])
+@app.route("/api/image/<id>/small", methods=["GET"])
 def small(id: str):
     """Serve the small thumbnail image from the S3 bucket"""
     return stream_image(id, Sizes.Small)
 
 
-@app.route("/image/<id>/tiny", methods=["GET"])
+@app.route("/api/image/<id>/tiny", methods=["GET"])
 def tiny(id: str):
     """Serve the tiny thumbnail image from the S3 bucket"""
     return stream_image(id, Sizes.Tiny)
 
 
-@app.route("/health", methods=["GET"])
+@app.route("/api/health", methods=["GET"])
 def health():
     """Simple healtcheck route to check the service is running properly"""
     return "ok"
